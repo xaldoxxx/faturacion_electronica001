@@ -1,0 +1,2 @@
+invoice_id,client_name,client_email,service_description,amount,date
+INV-20241009101010,Juan Pérez,juan.perez@example.com,Servicio de consultoría,500,2024-10-09

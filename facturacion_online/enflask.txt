@@ -1,0 +1,236 @@
+Árbol de Directorios y Archivos
+bash
+Copiar código
+/facturacion_online/
+├── app.py                 # Archivo principal que ejecuta el servidor web
+├── data/
+│   ├── __init__.py        # Archivo vacío para indicar que 'data' es un paquete
+│   ├── clientes.csv       # Archivo CSV para almacenar datos de los clientes
+│   ├── facturas.csv       # Archivo CSV para almacenar las facturas generadas
+├── templates/
+│   ├── formulario.html    # Formulario HTML para introducir datos de facturación
+│   ├── exito.html         # Página de éxito después de generar una factura
+├── static/
+│   ├── estilo.css         # Archivo CSS con estilo básico para el sitio web
+└── README.md              # Archivo de instrucciones para el uso del sistema
+2. Código de cada archivo
+Archivo app.py
+Este es el archivo principal de la aplicación, que usa Flask para manejar las rutas y solicitudes.
+
+python
+Copiar código
+from flask import Flask, render_template, request, redirect, url_for
+import csv
+import os
+from datetime import datetime
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+
+app = Flask(__name__)
+DIRECTORIO = os.path.dirname(os.path.realpath(__file__))
+
+# Ruta para la página principal del formulario
+@app.route('/formulario', methods=['GET'])
+def formulario():
+    return render_template('formulario.html')
+
+# Ruta para manejar la generación de la factura
+@app.route('/generar_factura', methods=['POST'])
+def generar_factura():
+    # Obtener datos del formulario
+    cliente_nombre = request.form['cliente_nombre']
+    cliente_email = request.form['cliente_email']
+    descripcion_servicio = request.form['descripcion_servicio']
+    monto = request.form['monto']
+
+    # Generar la factura en PDF
+    factura_id = generar_pdf(cliente_nombre, cliente_email, descripcion_servicio, monto)
+
+    # Guardar los datos en un archivo CSV
+    guardar_datos_factura(cliente_nombre, cliente_email, descripcion_servicio, monto, factura_id)
+
+    # Redireccionar a la página de éxito
+    return redirect(url_for('exito'))
+
+# Ruta para la página de éxito
+@app.route('/exito', methods=['GET'])
+def exito():
+    return render_template('exito.html')
+
+# Función para generar el PDF de la factura
+def generar_pdf(cliente_nombre, cliente_email, descripcion_servicio, monto):
+    # Crear el nombre del archivo PDF
+    factura_id = f"FACTURA-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+    pdf_archivo = f"{DIRECTORIO}/{factura_id}.pdf"
+
+    # Crear el PDF
+    pdf = canvas.Canvas(pdf_archivo, pagesize=letter)
+    pdf.setFont("Helvetica", 12)
+    pdf.drawString(100, 750, f"Factura: {factura_id}")
+    pdf.drawString(100, 730, f"Fecha: {datetime.now().strftime('%Y-%m-%d')}")
+    pdf.drawString(100, 710, f"Cliente: {cliente_nombre}")
+    pdf.drawString(100, 690, f"Email: {cliente_email}")
+    pdf.drawString(100, 670, f"Descripción del servicio: {descripcion_servicio}")
+    pdf.drawString(100, 650, f"Monto: ${monto}")
+    pdf.save()
+
+    return factura_id
+
+# Función para guardar los datos de la factura en un archivo CSV
+def guardar_datos_factura(cliente_nombre, cliente_email, descripcion_servicio, monto, factura_id):
+    archivo_csv = f'{DIRECTORIO}/data/facturas.csv'
+    with open(archivo_csv, 'a', newline='') as csvfile:
+        fieldnames = ['factura_id', 'cliente_nombre', 'cliente_email', 'descripcion_servicio', 'monto', 'fecha']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+        # Verificar si el archivo está vacío y escribir el encabezado
+        if os.stat(archivo_csv).st_size == 0:
+            writer.writeheader()
+
+        writer.writerow({
+            'factura_id': factura_id,
+            'cliente_nombre': cliente_nombre,
+            'cliente_email': cliente_email,
+            'descripcion_servicio': descripcion_servicio,
+            'monto': monto,
+            'fecha': datetime.now().strftime('%Y-%m-%d')
+        })
+
+if __name__ == '__main__':
+    app.run(debug=True)
+Archivo data/clientes.csv
+Este archivo almacena los datos de los clientes.
+
+csv
+Copiar código
+cliente_nombre,cliente_email
+"Juan Pérez", "juan.perez@example.com"
+"Maria Rodriguez", "maria.rodriguez@example.com"
+Archivo data/facturas.csv
+Este archivo guarda las facturas generadas.
+
+csv
+Copiar código
+factura_id,cliente_nombre,cliente_email,descripcion_servicio,monto,fecha
+FACTURA-20241009101010,Juan Pérez,juan.perez@example.com,Servicio de consultoría,500,2024-10-09
+Archivo templates/formulario.html
+El formulario HTML para que los usuarios ingresen los datos de la factura.
+
+html
+Copiar código
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/estilo.css">
+    <title>Generar Factura</title>
+</head>
+<body>
+    <h1>Generar Factura</h1>
+    <form action="/generar_factura" method="POST">
+        <label for="cliente_nombre">Nombre del Cliente:</label>
+        <input type="text" id="cliente_nombre" name="cliente_nombre" required><br>
+
+        <label for="cliente_email">Email del Cliente:</label>
+        <input type="email" id="cliente_email" name="cliente_email" required><br>
+
+        <label for="descripcion_servicio">Descripción del Servicio:</label>
+        <input type="text" id="descripcion_servicio" name="descripcion_servicio" required><br>
+
+        <label for="monto">Monto:</label>
+        <input type="text" id="monto" name="monto" required><br>
+
+        <button type="submit">Generar Factura</button>
+    </form>
+</body>
+</html>
+Archivo templates/exito.html
+Página que muestra el éxito tras la creación de la factura.
+
+html
+Copiar código
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/estilo.css">
+    <title>Factura Generada</title>
+</head>
+<body>
+    <h1>Factura Generada Exitosamente</h1>
+    <p>Tu factura ha sido generada con éxito. Revisa tu correo para obtener más detalles.</p>
+    <a href="/formulario">Generar otra factura</a>
+</body>
+</html>
+Archivo static/estilo.css
+Estilo básico para la página web.
+
+css
+Copiar código
+body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+}
+
+form {
+    margin: 20px 0;
+}
+
+input {
+    margin: 10px 0;
+    padding: 8px;
+    width: 100%;
+    max-width: 400px;
+}
+
+button {
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+Archivo README.md
+Instrucciones sobre cómo usar la aplicación.
+
+markdown
+Copiar código
+# Sistema de Facturación Electrónica
+
+Este sistema permite a los autónomos y freelancers generar facturas personalizadas en formato PDF.
+
+## Requisitos
+
+- Python 3.x
+- Flask
+- ReportLab (para la generación de PDFs)
+
+## Instalación
+
+1. Clona este repositorio en tu máquina local.
+2. Instala las dependencias necesarias:
+pip install Flask reportlab
+
+markdown
+Copiar código
+
+3. Ejecuta el servidor:
+python app.py
+
+markdown
+Copiar código
+
+4. Abre tu navegador y visita `http://localhost:5000/formulario` para empezar a generar facturas.
+
+## Funcionamiento
+
+- Los datos de cada factura se almacenan en un archivo CSV (`data/facturas.csv`).
+- Las facturas generadas se guardan como PDFs en el directorio raíz del proyecto.
+Conclusión:
+Este es un sistema de facturación simple construido con Flask para una fácil integración y despliegue en PythonAnywhere. La estructura es limpia, escalable y utiliza las librerías internas de Python para manejar todo el proceso, desde la recolección de datos hasta la generación de las facturas en PDF.

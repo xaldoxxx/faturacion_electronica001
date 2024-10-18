@@ -1,6 +1,6 @@
 Árbol de Directorios y Archivos
 bash
-Copiar código
+
 /facturacion_online/
 ├── app.py                 # Archivo principal que ejecuta el servidor web
 ├── data/
@@ -18,7 +18,8 @@ Archivo app.py
 Este es el archivo principal de la aplicación, que usa Flask para manejar las rutas y solicitudes.
 
 python
-Copiar código
+
+
 from flask import Flask, render_template, request, redirect, url_for
 import csv
 import os
@@ -102,7 +103,8 @@ Archivo data/clientes.csv
 Este archivo almacena los datos de los clientes.
 
 csv
-Copiar código
+
+
 cliente_nombre,cliente_email
 "Juan Pérez", "juan.perez@example.com"
 "Maria Rodriguez", "maria.rodriguez@example.com"
@@ -110,14 +112,14 @@ Archivo data/facturas.csv
 Este archivo guarda las facturas generadas.
 
 csv
-Copiar código
+
 factura_id,cliente_nombre,cliente_email,descripcion_servicio,monto,fecha
 FACTURA-20241009101010,Juan Pérez,juan.perez@example.com,Servicio de consultoría,500,2024-10-09
 Archivo templates/formulario.html
 El formulario HTML para que los usuarios ingresen los datos de la factura.
 
 html
-Copiar código
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -149,7 +151,7 @@ Archivo templates/exito.html
 Página que muestra el éxito tras la creación de la factura.
 
 html
-Copiar código
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -168,7 +170,7 @@ Archivo static/estilo.css
 Estilo básico para la página web.
 
 css
-Copiar código
+
 body {
     font-family: Arial, sans-serif;
     padding: 20px;
@@ -199,8 +201,8 @@ button:hover {
 Archivo README.md
 Instrucciones sobre cómo usar la aplicación.
 
-markdown
-Copiar código
+
+
 # Sistema de Facturación Electrónica
 
 Este sistema permite a los autónomos y freelancers generar facturas personalizadas en formato PDF.
@@ -217,14 +219,10 @@ Este sistema permite a los autónomos y freelancers generar facturas personaliza
 2. Instala las dependencias necesarias:
 pip install Flask reportlab
 
-markdown
-Copiar código
 
 3. Ejecuta el servidor:
 python app.py
 
-markdown
-Copiar código
 
 4. Abre tu navegador y visita `http://localhost:5000/formulario` para empezar a generar facturas.
 
